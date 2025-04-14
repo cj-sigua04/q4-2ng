@@ -55,6 +55,42 @@ app.get('/', (req, res) => {
     res.status(500).send('Error loading user data');
   }
 });
+// Route to display the club sign-up form
+app.get('/join', (req, res) => {
+  res.render('join.hbs', { clubArray });
+});
+
+// Route to handle form submission
+app.post('/submit-form', (req, res) => {
+  const newMember = req.body;
+  console.log("New signup received:", newMember);
+
+  let clubMembers = { students: [] };
+
+  try {
+    if (fs.existsSync(usersFilePath)) {
+      const rawData = fs.readFileSync(usersFilePath);
+      clubMembers = JSON.parse(rawData);
+      if (!Array.isArray(clubMembers.students)) {
+        clubMembers.students = [];
+      }
+    }
+  } catch (error) {
+    console.error('Error reading users file:', error);
+  }
+
+  clubMembers.students.push(newMember);
+
+  try {
+    fs.writeFileSync(usersFilePath, JSON.stringify(clubMembers, null, 2));
+    console.log('New member added successfully.');
+  } catch (error) {
+    console.error('Error writing to users file:', error);
+    return res.status(500).send('Error saving user data.');
+  }
+
+  res.redirect('/');
+});
 
 
 
